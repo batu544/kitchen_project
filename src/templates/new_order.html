@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ title }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<h1>{{ title }}</h1>
+<div id="clickStream">
+    <a href="{{ url_for('home') }}" class="menu-click">Home</a>
+    <a href="{{ url_for('order.orders') }}" class="menu-click">Order Tracking</a>
+    <a href="{{ url_for('reports') }}" class="menu-click">Reports</a>
+</div>
+<form id="orderForm">
+    <h3>Customer Details</h3>
+    <label for="customer_name">Name:</label>
+    <input type="text" id="customer_name" name="customer_name" required>
+
+    <label for="customer_number">Phone:</label>
+    <input type="tel" id="customer_number" name="customer_number" required>
+
+    <h3>Order Items</h3>
+    <table id="itemsTable">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Spicy Level</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="itemsContainer">
+            <!-- Dynamic rows will be added here -->
+        </tbody>
+    </table>
+    <div id="oneline" style="padding:5px;"></div>
+    <button type="button" onclick="addItem()">Add Another Item</button>
+    <button type="submit">Submit Order</button>
+</form>
+
+<div id="statusMessage" class="message-box"></div>
+<div id="button-container" class="button-container">
+    <a href="{{ url_for('order.new_order') }}" class="menu-click">Create New Order</a>
+</div>
+
+<!--<label for="order_item">Item Name:</label>-->
+<!--<input type="text" id="order_item" name="order_item[]" oninput="searchItem(this.value)" autocomplete="off">-->
+<!--<div id="suggestions"></div> &lt;!&ndash; Suggestions will be displayed here &ndash;&gt;-->
+
+<script>
+    function addItem(order = {}) {
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="text" name="order_item[]" value="${order.item || ''}" placeholder="Item Name" required></td>
+            <td><input type="number" name="qty[]" value="${order.qty || ''}" placeholder="Quantity" required></td>
+            <td><input type="number" step="1" name="price[]" value="${order.price || ''}" placeholder="Price" required></td>
+            <td>
+                <select name="spicy_level[]">
+                    <option value="mild" ${order.spicy === "mild" ? "selected" : ""}>Mild</option>
+                    <option value="medium" ${order.spicy === "medium" ? "selected" : ""}>Medium</option>
+                    <option value="hot" ${order.spicy === "hot" ? "selected" : ""}>Hot</option>
+                </select>
+            </td>
+            <td><button type="button" onclick="removeItem(this)">Remove</button></td>
+        `;
+        document.getElementById("itemsContainer").appendChild(row);
+    }
+
+    function removeItem(button) {
+        button.parentElement.parentElement.remove();
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent normal form submission
+        const formData = new FormData(this);
+        fetch("/order/new_order", {
+            method: "POST",
+            body: formData
+        }).then(response => response.json())
+        .then(data => displayMessage(data.message));
+    });
+
+    addItem(); // Initialize with one row
+
+    function displayMessage(message) {
+        const clearForm = document.getElementById("orderForm")
+        clearForm.innerHTML = ""; // Clear any existing content before displaying Order number
+
+        const statusBox = document.getElementById("statusMessage");
+        statusBox.textContent = "Thank you!\n Your Order number:  " + message;
+        statusBox.style.display = "block";
+
+        const newOrderBtn = document.getElementById("button-container") ;
+        newOrderBtn.style.display = "block";
+<!--        // Hide after 2 seconds-->
+<!--        setTimeout(() => {-->
+<!--            statusBox.style.display = "none";-->
+<!--        }, 2000);-->
+    }
+</script>
+
+</body>
+</html>

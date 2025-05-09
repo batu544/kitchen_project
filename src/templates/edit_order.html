@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Order</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<h1>Edit Orders</h1>
+<div id="clickStream">
+    <a href="{{ url_for('home') }}" class="menu-click">Home</a>
+    <a href="{{ url_for('order.orders') }}" class="menu-click">Order Tracking</a>
+    <a href="{{ url_for('reports') }}" class="menu-click">Reports</a>
+</div>
+ <h2>Edit Order</h2>
+    <p></p><p></p>
+    <div id="orderHeader"></div>
+
+    <table id="orderTable" class="orderTable">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Action</th> <!-- New column for delete button -->
+            </tr>
+        </thead>
+        <tbody id="orderLines"></tbody>
+    </table>
+    <button onclick="addNewRow()">➕ Add New Row</button>
+    <button class="update-button" onclick="updateOrder()">Update Order</button>
+
+    <script>
+        let orderData = JSON.parse('{{returnData | tojson | safe}}');
+        console.log(orderData)
+        // Display order header
+        document.getElementById("orderHeader").innerHTML = `
+            <p><strong>Order ID:</strong> ${orderData.order_header[0]}</p>
+            <p><strong>Customer Name:</strong> ${orderData.order_header[1]}</p>
+            <p><strong>Phone Number:</strong> ${orderData.order_header[2]}</p>
+            <p><strong>Item Count:</strong> ${orderData.order_header[3]}</p>
+            <p><strong>Order Total:</strong> ${orderData.order_header[4]}</p>
+            <p><strong>Order Status:</strong> ${orderData.order_header[5]}</p>
+        `;
+
+        // Populate order lines with editable fields
+        let orderLinesContainer = document.getElementById("orderLines");
+        orderData.order_lines.forEach((item, index) => {
+            let row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${item.item_name}</td>
+                <td><input type="number" value="${item.order_qty}" id="qty_${index}"></td>
+                <td>${item.order_unit}</td>
+                <td>${item.order_price}</td>
+                <td>
+                    <select id="status_${index}">
+                        <option value="ordered" ${item.order_status === "ordered" ? "selected" : ""}>Ordered</option>
+                        <option value="delivered" ${item.order_status === "delivered" ? "selected" : ""}>Delivered</option>
+                        <option value="cancelled" ${item.order_status === "cancelled" ? "selected" : ""}>Canceled</option>
+                    </select>
+                </td>
+                <td><button onclick="deleteRow(this)">🗑️ Delete</button></td>
+            `;
+
+            orderLinesContainer.appendChild(row);
+        });
+
+        // Function to collect updated data and send to backend
+        function updateOrder() {
+            let updatedOrderLines = [];
+            let rows = document.querySelectorAll("#orderLines tr"); // Select all rows in the table
+
+            rows.forEach((row) => {
+                let itemName = row.querySelector("td:nth-child(1) input")?.value || row.cells[0].innerText;
+                let orderQty = row.querySelector("td:nth-child(2) input")?.value || row.cells[1].innerText;
+                let orderUnit = row.querySelector("td:nth-child(3) input")?.value || row.cells[2].innerText;
+                let orderPrice = row.querySelector("td:nth-child(4) input")?.value || row.cells[3].innerText;
+                let orderStatus = row.querySelector("td:nth-child(5) select").value;
+
+                updatedOrderLines.push({
+                    item_name: itemName,
+                    order_qty: orderQty,
+                    order_unit: orderUnit,
+                    order_price: orderPrice,
+                    order_status: orderStatus
+                });
+            });
+
+            //console.log("Updated Order Lines:", updatedOrderLines);
+            // Send updatedOrderLines to backend via fetch()
+            fetch(`/order/edit_order/${orderData.order_header[0]}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ order_id: orderData.order_header[0], order_lines: updatedOrderLines })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Order updated successfully!");
+                    // reload the page after showing the message
+                    location.reload();
+                } else {
+                    alert("Error updating order: " + data.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    function addNewRow() {
+        let tableBody = document.getElementById("orderLines");
+        let rowIndex = tableBody.rows.length; // Track row index for unique IDs
+
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="text" id="item_${rowIndex}" placeholder="Enter Item Name"></td>
+            <td><input type="number" id="qty_${rowIndex}" value="1"></td>
+            <td><input type="text" id="unit_${rowIndex}" placeholder="Unit"></td>
+            <td><input type="number" id="price_${rowIndex}" value="0.00" step="0.01"></td>
+            <td>
+                <select id="status_${rowIndex}">
+                    <option value="ordered">Ordered</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="canceled">Canceled</option>
+                </select>
+            </td>
+            <td><button onclick="deleteRow(this)">🗑️ Delete</button></td>
+        `;
+
+        tableBody.appendChild(row);
+    }
+
+    function deleteRow(button) {
+        let row = button.parentElement.parentElement; // Get the row
+        let rowIndex = row.rowIndex - 1; // Adjust index (ignoring table headers)
+        row.remove(); // Remove the row from the table
+
+        // Remove corresponding item from orderData array
+        orderData.order_lines.splice(rowIndex, 1);
+    }
+    </script>
+</body>
+</html>

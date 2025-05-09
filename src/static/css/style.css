@@ -1,0 +1,148 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px 0;
+    margin: 0;
+}
+.menu-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px;
+    gap: 20px;
+}
+#clickStream{padding: 10px}
+#header-title{padding: 20px; font-weight: bold;}
+
+.menu-button {
+    display: inline-block;
+    padding: 20px 40px;
+    text-decoration: none;
+    font-size: 1.5em;
+    color: white;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 200px;
+    text-align: center;
+}
+.menu-button:hover {
+    background-color: #45a049;
+}
+.menu-button:active {
+    background-color: #39843c;
+}
+.miniOrderWindow{
+    text-align: center;
+
+}
+.menu-click {
+    display: inline-block;
+    padding: 2px 2px;
+    text-decoration: none;
+    font-size: .9em;
+    color: white;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.4s;
+    width: 200px;
+    text-align: center;
+}
+.order-table {
+    margin: auto;
+    width: 70%;
+    align: center;
+    border-collapse: collapse;
+    text-align: left;
+}
+.order-table th, .order-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+.order-table th {
+    background-color: #f4f4f4;
+}
+#itemsTable{
+    margin: auto;
+}
+.message-box {
+    margin: auto;
+    top: 30px;
+    right: 20px;
+    background-color: white;
+    padding: 50px;
+    border-radius: 5px;
+    display: none;  /* Initially hidden */
+}
+.button-container {
+    margin: auto;
+    padding: 20px;
+    display: none; /* Initially hidden */
+}
+
+.orderTable {
+    width: 80%; /* Makes the table wide but not touching edges */
+    margin: 20px auto; /* Centers the table */
+    border-collapse: separate; /* Keeps cell spacing */
+    border-spacing: 1px; /* Adds spacing between cells */
+    background-color: #f9f9f9; /* Light background for contrast */
+}
+
+.orderTable th, .orderTable td {
+    padding: 4px; /* Adds padding for spacing */
+    text-align: left; /* Aligns text neatly */
+    border: 1px solid #ddd; /* Light border for visibility */
+    font-size: 15px; /* Makes text readable */
+}
+
+.orderTable th {
+    background-color: #007bff; /* Header background color */
+    color: white; /* White text for contrast */
+    font-weight: bold;
+}
+
+.orderTable tr:nth-child(even) {
+    background-color: #f2f2f2; /* Adds alternating row colors */
+}
+
+.orderTable tbody tr:hover {
+    background-color: #e6f7ff; /* Highlight row on hover */
+    cursor: pointer;
+}
+
+.searchBox {
+    border: 2px solid #007bff; /* Blue border */
+    padding: 15px; /* Spacing inside the box */
+    border-radius: 8px; /* Rounded corners */
+    background-color: #f8f9fa; /* Light gray background */
+
+    display: flex; /* Align items in a row */
+    gap: 10px; /* Space between inputs */
+    align-items: center; /* Vertically center elements */
+    justify-content: center; /* Center elements horizontally */
+
+    width: fit-content; /* Shrinks the border to fit the contents */
+    margin: auto; /* Centers the form in the middle of the page */
+}
+#orderHeader{
+    margin: auto;
+    display: flex; /* Arrange items in one row */
+    gap: 15px; /* Add spacing between elements */
+    padding: 10px;
+    background-color: #f8f9fa; /* Light background */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px;
+    width: fit-content;
+}

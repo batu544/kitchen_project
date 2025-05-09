@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            margin: 0;
+            text-align: center;
+        }
+        form, .category-section { margin: 10px auto; width: 100%; }
+        form { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        input, select, button { padding: 2px; font-size: 1em; border-radius: 5px; border: 1px solid #ccc; }
+        button { background-color: #4CAF50; color: white; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        table { border-collapse: collapse; width: 90%; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 2px; text-align: Left; }
+        th { background-color: #4CAF50; color: white; }
+        .category-header { font-size: 1.2em; margin-top: 15px; background-color: #f6a9a9; padding: 5px; }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;  /* Initially hidden */
+        }
+        .menu-click {
+            display: inline-block;
+            padding: 2px 2px;
+            text-decoration: none;
+            font-size: .9em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.4s;
+            width: 200px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Menu Management</h1>
+    <div id="clickStream">
+        <a href="{{ url_for('home') }}" class="menu-click">Home</a>
+        <a href="{{ url_for('order.orders') }}" class="menu-click">Order Tracking</a>
+    </div>
+    <div id="statusMessage" class="message-box"></div>
+    <!-- Add/Edit Form -->
+    <form id="menuForm">
+        <input type="hidden" id="itemId">
+        <input type="text" id="name" placeholder="Name" required>
+        <select id="category" required>
+            <option value="VA">VA - Veg Starter</option>
+            <option value="NA">NA - Non-veg Starter</option>
+            <option value="VM">VM - Veg Entree</option>
+            <option value="NM">NM - Non-veg Entree</option>
+            <option value="DE">DE - Dessert</option>
+        </select>
+        <input type="number" id="price" placeholder="Price" required>
+        <select id="partyFlag" required>
+            <option value="" disabled selected>Party Indicator</option>
+            <option value="Y">Y</option>
+            <option value="N">N</option>
+        </select>
+        <button type="submit">Save Menu Item</button>
+    </form>
+
+    <!-- Menu Container -->
+    <div id="menuTable"></div> <!-- Dynamic content container -->
+
+    <script>
+        const apiUrl = 'http://127.0.0.1:5000/menu';
+
+        // Convert Flask variable into JavaScript array
+        let menuItems = JSON.parse('{{menuItems | tojson | safe}}')
+
+        // Structure data into a more readable format
+        const formattedMenuItems = menuItems.map(item => ({
+            id: item[0],
+            category: item[1],
+            item_name: item[2],
+            price: parseFloat(item[3]), // Convert price string into a number
+            small: item[4],
+            med: item[5],
+            large: item[6],
+            cat_cd: item[7],
+            party_flag: item[8]
+        }));
+
+        // Group items by category
+        const groupedItems = formattedMenuItems.reduce((groups, item) => {
+            groups[item.category] = groups[item.category] || [];
+            groups[item.category].push(item);
+            return groups;
+        }, {});
+
+        // Render grouped items dynamically
+        const menuTable = document.querySelector("#menuTable");
+        menuTable.innerHTML = ""; // Clear any existing content
+
+        for (const [category, items] of Object.entries(groupedItems)) {
+            // Create a category header
+            const categoryHeader = document.createElement("div");
+            categoryHeader.classList.add("category-header");
+            categoryHeader.textContent = category;
+            menuTable.appendChild(categoryHeader);
+
+            // Create a table for items under the current category
+            const table = document.createElement("table");
+            table.innerHTML = `
+                <tr>
+                    <th>Name</th>
+                    <th>Base Price</th>
+                    <th>Small Tray</th>
+                    <th>Medium Tray</th>
+                    <th>Large Tray</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+            items.forEach((item) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.item_name}</td>
+                    <td>$${item.price}</td>
+                    <td>${item.small}</td>
+                    <td>${item.med}</td>
+                    <td>${item.large}</td>
+                    <td>
+                        <button onclick="editMenuItem(${item.id}, '${item.item_name}', '${item.cat_cd}', ${item.price}, '${item.party_flag}')">Edit</button>
+                        <button onclick="deleteMenuItem(${item.id})">Delete</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+
+            menuTable.appendChild(table);
+        }
+
+        // Save or update menu items
+        document.querySelector("#menuForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const itemId = document.querySelector("#itemId").value;
+            const name = document.querySelector("#name").value;
+            const category = document.querySelector("#category").value;
+            const price = document.querySelector("#price").value;
+            const partyFlag = document.querySelector("#partyFlag").value;
+            const data = { name, category, price, partyFlag };
+
+            if (itemId) {
+                const response = await fetch(`${apiUrl}/${itemId}`, {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(data),
+                                });
+                if(!response.ok){
+                    throw new Error(`Failed to update item: ${response.status} ${response.statusText}`);
+                }
+                const resp = await response.json(); // Parse JSON response
+                displayMessage(resp.message);
+            } else {
+                const response = await fetch(apiUrl, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(data),
+                });
+                if(!response.ok){
+                    throw new Error(`Failed to add item: ${response.status} ${response.statusText}`);
+                }
+                const resp = await response.json(); // Parse JSON response
+                displayMessage(resp.message);
+            }
+
+            document.querySelector("#menuForm").reset();
+            setTimeout(() => location.reload(), 2000);
+        });
+
+        function displayMessage(message) {
+            const statusBox = document.getElementById("statusMessage");
+            statusBox.textContent = message;
+            statusBox.style.display = "block";
+
+            // Hide after 2 seconds
+            setTimeout(() => {
+                statusBox.style.display = "none";
+            }, 2000);
+        }
+
+        function editMenuItem(id, name, cat_cd, price, party_flag) {
+            document.querySelector("#itemId").value = id;
+            document.querySelector("#name").value = name;
+            document.querySelector("#category").value = cat_cd;
+            document.querySelector("#price").value = price;
+            document.querySelector('#partyFlag').value = party_flag;
+            document.querySelector("#menuForm").scrollIntoView({ behavior: "smooth" });
+        }
+
+        async function deleteMenuItem(id) {
+            try{
+                const response = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+                if(!response.ok) {
+                    throw new Error(`Failed to delete item: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json(); // Parse JSON response
+                // Display the message on the page
+                displayMessage(data.message);
+
+                // reload the page after showing the message
+                setTimeout(() => location.reload(), 2000);
+
+            } catch (error) {
+            console.error("Error deleting menu item:", error);
+            alert("Failed to delete the item. Please try again or check your network connection.");
+            }
+        }
+    </script>
+</body>
+</html>

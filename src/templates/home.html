@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            margin: 0;
+        }
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px;
+            gap: 20px;
+        }
+        .menu-button {
+            display: inline-block;
+            padding: 20px 40px;
+            text-decoration: none;
+            font-size: 1.5em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 200px;
+            text-align: center;
+        }
+        .menu-button:hover {
+            background-color: #45a049;
+        }
+        .menu-button:active {
+            background-color: #39843c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Restaurant Management System</h1>
+
+    <div class="menu-container">
+        <!-- Menu Management Button -->
+        <a href="{{ url_for('menu.get_menu') }}" class="menu-button">Menu Management</a>
+        <!-- Order Tracking Button -->
+        <a href="{{ url_for('order.orders') }}" class="menu-button">Order Tracking</a>
+
+        <!-- Inventory Management Button -->
+        <a href="{{ url_for('inventory_management') }}" class="menu-button">Inventory Management</a>
+
+        <!-- Reports and Analytics Button -->
+        <a href="{{ url_for('reports') }}" class="menu-button">Reports & Analytics</a>
+
+    </div>
+</body>
+</html>

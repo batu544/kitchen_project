@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { background-color: #4CAF50; color: white; padding: 20px 0; margin: 0; }
+        form, .category-section { margin: 20px auto; width: 90%; }
+        form { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        input, select, button { padding: 10px; font-size: 1em; border-radius: 5px; border: 1px solid #ccc; }
+        button { background-color: #4CAF50; color: white; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #4CAF50; color: white; }
+        .category-header { font-size: 1.2em; margin-top: 20px; background-color: #f2f2f2; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Menu Management</h1>
+
+    <!-- Add/Edit Form -->
+    <form id="menuForm">
+        <input type="hidden" id="itemId">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="text" id="category" placeholder="Category" required>
+        <textarea id="description" placeholder="Description" rows="1" style="resize: none;" required></textarea>
+        <input type="number" id="price" placeholder="Price" required>
+        <input type="number" id="quantity" placeholder="Quantity" required>
+        <select id="spicy_level" required>
+            <option value="None">None</option>
+            <option value="Mild">Mild</option>
+            <option value="Medium">Medium</option>
+            <option value="Hot">Hot</option>
+        </select>
+        <button type="submit">Save Menu Item</button>
+    </form>
+
+    <!-- Menu Container -->
+    <div id="menuTable"></div> <!-- Dynamic content container -->
+
+    <script>
+        const apiUrl = 'http://127.0.0.1:5000/menu';
+
+        let mItems = JSON.parse('{{menuItems | tojson | safe}}')
+        // Group items by category
+        const groupedItems = mItems.reduce((groups, item) => {
+            groups[item.category] = groups[item.category] || [];
+            groups[item.category].push(item);
+            return groups;
+        }, {});
+        console.log(groupedItems);
+
+        // Render grouped items dynamically
+        const menuTable = document.querySelector("#menuTable");
+        menuTable.innerHTML = ""; // Clear any existing content
+
+        for (const [category, items] of Object.entries(groupedItems)) {
+            // Create a category header
+            const categoryHeader = document.createElement("div");
+            categoryHeader.classList.add("category-header");
+            categoryHeader.textContent = category;
+            menuTable.appendChild(categoryHeader);
+
+            // Create a table for items under the current category
+            const table = document.createElement("table");
+            table.innerHTML = `
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Selling Unit</th>
+                    <th>Spicy Level</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+            items.forEach((item) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td>$${item.item_price}</td>
+                    <td>${item.item_selling_unit}</td>
+                    <td>${item.spicy_level}</td>
+                    <td>
+                        <button onclick="editMenuItem(${item.id}, '${item.name}', '${item.category}', '${item.description}', ${item.price}, ${item.quantity}, '${item.spicy_level}')">Edit</button>
+                        <button onclick="deleteMenuItem(${item.id})">Delete</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+
+            menuTable.appendChild(table);
+        }
+
+        // Save or update menu items
+        document.querySelector("#menuForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const itemId = document.querySelector("#itemId").value;
+            const name = document.querySelector("#name").value;
+            const category = document.querySelector("#category").value;
+            const description = document.querySelector("#description").value;
+            const price = document.querySelector("#price").value;
+            const quantity = document.querySelector("#quantity").value;
+            const spicy_level = document.querySelector("#spicy_level").value;
+
+            const data = { name, category, description, price, quantity, spicy_level };
+
+            if (itemId) {
+                await fetch(`${apiUrl}/${itemId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+            } else {
+                await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+            }
+
+            document.querySelector("#menuForm").reset();
+            location.reload();
+        });
+
+        function editMenuItem(id, name, category, description, price, quantity, spicy_level) {
+            document.querySelector("#itemId").value = id;
+            document.querySelector("#name").value = name;
+            document.querySelector("#category").value = category;
+            document.querySelector("#description").value = description;
+            document.querySelector("#price").value = price;
+            document.querySelector("#quantity").value = quantity;
+            document.querySelector("#spicy_level").value = spicy_level;
+
+            document.querySelector("#menuForm").scrollIntoView({ behavior: "smooth" });
+        }
+
+        async function deleteMenuItem(id) {
+            await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+            location.reload();
+        }
+    </script>
+</body>
+</html>

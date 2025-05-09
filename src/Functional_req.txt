@@ -1,0 +1,27 @@
+1. Add "Paid" and "cancel" option in view_order page.
+    After clicking the button, it should update order lines and other header table and refresh the page.
+
+
+
+2. When paid is clicked, payment details needs to be saved in payment table with amount copied from order header table <future functionality>
+
+
+3.
+
+Payment System:
+---------------
+
+
+
+order_id
+payment_dt
+payment_amount
+discount
+tips
+delivery charge
+tax(%)
+
+Total payable amount
+Total amount paid
+payment method
+payment status

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            margin: 0;
+        }
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px;
+            gap: 20px;
+        }
+        #clickStream{padding: 10px}
+        #header-title{padding: 20px; font-weight: bold;}
+
+        .menu-button {
+            display: inline-block;
+            padding: 20px 40px;
+            text-decoration: none;
+            font-size: 1.5em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 200px;
+            text-align: center;
+        }
+        .menu-button:hover {
+            background-color: #45a049;
+        }
+        .menu-button:active {
+            background-color: #39843c;
+        }
+        .miniOrderWindow{
+            text-align: center;
+
+        }
+        .menu-click {
+            display: inline-block;
+            padding: 2px 2px;
+            text-decoration: none;
+            font-size: .9em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.4s;
+            width: 200px;
+            text-align: center;
+        }
+        .order-table {
+            margin: auto;
+            width: 70%;
+            align: center;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .order-table th, .order-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .order-table th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Order Management</h1>
+    <div id="clickStream">
+        <a href="{{ url_for('home') }}" class="menu-click">Home</a>
+        <a href="{{ url_for('order.orders') }}" class="menu-click">Order Tracking</a>
+        <a href="{{ url_for('reports') }}" class="menu-click">Reports</a>
+    </div>
+    <div class="menu-container">
+        <a href="{{ url_for('order.new_order') }}" class="menu-button">New Order</a>
+        <a href="{{ url_for('order.view_orders') }}" class="menu-button">View/Edit Orders</a>
+    </div>
+    <div id="header-title">Last 10 Orders</div>
+    <div id="miniOrder"></div> <!-- Dynamic content container -->
+<script>
+    // Convert Flask variable into JavaScript array
+    let orderItems = JSON.parse('{{orderItems | tojson | safe}}')
+    // format the orderItems
+
+    let formattedOrderItems = orderItems.map( order => ({
+            order_id : order[0],
+            order_dt : order[1],
+            orderPhone : order[2],
+            total : parseFloat(order[3]),
+            orderStatus : order[4]
+    }));
+    // Render grouped items dynamically
+    const miniOrder = document.querySelector("#miniOrder");
+    miniOrder.innerHTML = ""; // Clear any existing content
+
+    // Create table element
+    let table = document.createElement("table");
+    table.className = "order-table"; // Add class for styling
+
+    // Add table headers
+    table.innerHTML = `
+        <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Customer Name</th>
+            <th>Total</th>
+            <th>Status</th>
+        </tr>
+    `;
+    // Populate table rows dynamically
+    formattedOrderItems.forEach(order => {
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${order.order_id}</td>
+            <td>${order.order_dt}</td>
+            <td>${order.orderPhone}</td>
+            <td>$${order.total.toFixed(2)}</td>
+            <td>${order.orderStatus}</td>
+        `;
+        table.appendChild(row);
+    });
+
+    // Append the table to miniOrder div
+    miniOrder.appendChild(table);
+</script>
+</body>
+</html>
